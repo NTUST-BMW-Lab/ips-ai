@@ -20,6 +20,7 @@ from keras.metrics import categorical_accuracy
 from keras.models import Model
 
 from dae import dae
+from sdae import sdae
 
 def siso_regression(
         dataset: str,
@@ -67,4 +68,17 @@ def siso_regression(
         x = model(input)
     elif sdae_hidden_layer != '':
         print('-=- Initializing Stacked Denoising Autoencoder Model -=-')
+        model = sdae(
+            dataset=dataset,
+            input_data=rssi,
+            preprocessor=preprocessor,
+            batch_size=batch_size,
+            epochs=epochs,
+            hidden_layer=sdae_hidden_layer,
+            optimizer=optimizer,
+            validation_split=valdiation_split
+        )
+        x = model(input)
+    
+    
         
