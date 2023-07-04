@@ -24,18 +24,17 @@ class Loader(object):
         self.prepocessor = preprocessor
         self.unnamed_ap_val = unnamed_ap_val
         self.prefix = prefix
-
         if preprocessor == 'standard_scaler':
             from sklearn.preprocessing import StandardScaler
-            self.rssi_preprocessing = StandardScaler()
+            self.rssi_scaler = StandardScaler()
             self.coords_preprocessing = StandardScaler()
         elif preprocessor == 'min_max_scaler':
             from sklearn.preprocessing import MinMaxScaler
-            self.rssi_preprocessing = MinMaxScaler()
+            self.rssi_scaler = MinMaxScaler()
             self.coords_preprocessing = MinMaxScaler()
         elif preprocessor == 'normalization':
             from sklearn.preprocessing import Normalizer
-            self.rssi_preprocessing = Normalizer()
+            self.rssi_scaler = Normalizer()
             self.coords_preprocessing = Normalizer()
         else:
             print('{} - Preprocessing Method is not Supported!', self.prefix)
@@ -80,11 +79,19 @@ class Loader(object):
 
     def process_data(self):
         training_rss = np.asarray(self.training_df[self.no_waps], dtype=float)
-        training_rss[training_rss == -155] = self.unnamed_ap_val
+        training_rss[training_rss == -155] = self.unnamed_ap_val # Set the Min RSSI Value to Lowest AP Val to be processed
         testing_rss = np.asarray(self.testing_df[self.no_waps], dtype=float)
         testing_rss[testing_rss == -155] = self.unnamed_ap_val # Set the Min RSSI Value to Lowest AP Val to be processed
 
-        # Scaler
+        # Scaling over Flattened Data
+        if self.rssi_preprocessing != None:
+            training_rss_scaled = (self.rssi_scaler.fit_transform(
+                training_rss.reshape((-1, 1)))).reshape(training_rss.shape)
+            testing_rss_scaled = (self.rssi_scaler.fit_transform(
+                testing_rss.reshape((-1, 1)))).reshape(testing_rss.shape)
+        else:
+            training_rss_scaled = training_rss
+            testing_rss_scaled = testing_rss
 
         # Process Coords
 

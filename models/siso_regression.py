@@ -54,7 +54,7 @@ def siso_regression(
     input = Input(shape=(rssi.shape[1], ), name='input')
 
     if dae_hidden_layer != '':
-        print('-=- Initializing Deep Autoencoder Model -=-')
+        print('Initializing Deep Autoencoder Model..')
         model = dae(
             dataset=dataset,
             input_data=rssi,
@@ -67,7 +67,7 @@ def siso_regression(
         )
         x = model(input)
     elif sdae_hidden_layer != '':
-        print('-=- Initializing Stacked Denoising Autoencoder Model -=-')
+        print('Initializing Stacked Denoising Autoencoder Model..')
         model = sdae(
             dataset=dataset,
             input_data=rssi,
@@ -79,6 +79,8 @@ def siso_regression(
             validation_split=valdiation_split
         )
         x = model(input)
+    
+    
     
     
         
