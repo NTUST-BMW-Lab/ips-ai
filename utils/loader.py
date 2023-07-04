@@ -72,12 +72,24 @@ class Loader(object):
             frac=self.frac
         )
         self.no_waps = [cols for cols in self.training_df.columns if 'WAP' in cols]
-        # Count Number of APS
-        if not self.cache_loaded:
-            self.cache_loaded = True
+        self.waps_size = len(self.no_waps)
+
+        if self.frac < 1.0:
+            self.training_df = self.training_df.sample(frac=self.frac)
+            self.testing_df = self.testing_df.sample(frac=self.frac)
 
     def process_data(self):
-        pass
+        training_rss = np.asarray(self.training_df[self.no_waps], dtype=float)
+        training_rss[training_rss == -155] = self.unnamed_ap_val
+        testing_rss = np.asarray(self.testing_df[self.no_waps], dtype=float)
+        testing_rss[testing_rss == -155] = self.unnamed_ap_val # Set the Min RSSI Value to Lowest AP Val to be processed
 
+        # Scaler
+
+        # Process Coords
+
+        # Trilaterates
+
+        
     def save_data(self):
         pass
