@@ -15,6 +15,7 @@ session_conf = tf.ConfigProto(
 )
 from tensorflow import keras
 from keras.layers import Activation, Dense, Dropout, Input
+from keras.layers import BatchNormalization
 from keras import backend as b
 from keras.metrics import categorical_accuracy
 from keras.models import Model
@@ -68,7 +69,7 @@ def siso_regression(
         x = model(input)
     elif sdae_hidden_layer != '':
         print('Initializing Stacked Denoising Autoencoder Model..')
-        model = sdae(
+        model = sdae(       
             dataset=dataset,
             input_data=rssi,
             preprocessor=preprocessor,
@@ -79,8 +80,40 @@ def siso_regression(
             validation_split=valdiation_split
         )
         x = model(input)
+    else:
+        x = input
+    
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = Dropout(dropout)(x)
+
+    if reg_hidden_layer != '':
+        for unit in reg_hidden_layer:
+            x = Dense(unit)(x)
+            x = BatchNormalization()(x)
+            x = Activation('relu')(x)
+            x = Dropout(dropout)(x)
+    
+    x = Dense(coord.shape[1], kernel_initializer='normal')(x)
+    x = BatchNormalization()(x)
+    output_coords = Activation('linear',
+                               name='output_coords'
+                               )(x)
+    
+    model = Model(input=input, outputs=output_coords)
+    model.compile(
+        optimizer=optimizer,
+        loss='mean_squared_error',
+        metrics=['mean_squared_error']
+    )
+    # outputs the weight file
+    # output the model checkpoint
+    # output the earlystopping
+
     
     
+    
+
     
     
         
