@@ -3,6 +3,10 @@
 ## Introduction
 This repository is a framework for Indoor Positioning with Machine Learning approach to achieve the smallest error rate possible. Based on a paper in [WiFi](https://ieeexplore.ieee.org/document/7275492) Indoor Positioning which introduced data collection using a Client-based fingerprinting method.
 
+## Crawling Environment
+RSSI Data crawling will be done in Dorm 1 in National Taiwan University of Science and Technology. Floor plan of the location can been seen below.
+// Insert Image Here
+
 ## Dataset Loader
 
 This is a Python class (`Loader`) that facilitates loading and processing of data from a dataset. The class provides methods to load, preprocess, and cache the data.
