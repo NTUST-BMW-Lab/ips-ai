@@ -7,69 +7,80 @@ This repository is a framework for Indoor Positioning with Machine Learning appr
 RSSI Data crawling will be done in Dorm 1 in National Taiwan University of Science and Technology. Floor plan of the location can been seen below.
 // Insert Image Here
 
-## Dataset Loader
-
-This is a Python class (`Loader`) that facilitates loading and processing of data from a dataset. The class provides methods to load, preprocess, and cache the data.
-
-### Features
-
-- Loads dataset from a file in cloudpickle format.
-- Allows specifying a fraction of the dataset to load.
-- Supports different preprocessing methods (standard scaler, min-max scaler, or normalization).
-- Handles replacing the minimum RSSI value with a specified value.
-- Caches the processed data for faster subsequent access.
-
-### Requirements
+## Requirements
 
 - Python 3.x
 - NumPy
 - Pandas
-- Cloudpickle
 - Scikit-learn
 
-### Usage
+## Dataset Loader
 
-1. Import the `Loader` class:
+The Loader class is a data loading and preprocessing utility for indoor positioning datasets. It facilitates the loading of training and testing data from CSV files and performs preprocessing on the data using various methods such as StandardScaler, MinMaxScaler, and Normalizer.
 
-    ```python
-    from loader import Loader
-    ```
+### Class Initialization
+```python
+class Loader(object):
+    def __init__(self,
+                 path='../datas/',
+                 frac=0.1,
+                 preprocessor='standard_scaler',
+                 prefix='IPS-LOADER',
+                 no_val_rss=100,
+                 floor=1
+                 ):
+```
+Parameters:
+1. `path` (str, optional): The path to the directory where the data files are located. Default is '../datas/'.
+2. `frac` (float, optional): The fraction of data to be sampled. Should be a float between 0.0 and 1.0. Default is 0.1.
+3. `preprocessor` (str, optional): The method to be used for preprocessing the data. Available options are 'standard_scaler', 'min_max_scaler', and 'normalization'. Default is 'standard_scaler'.
+4. `prefix` (str, optional): A prefix string used for logging or identification purposes. Default is 'IPS-LOADER'.
+5. `no_val_rss` (int, optional): The value used to indicate missing RSS (Received Signal Strength) values. Default is 100.
+6. `floor` (int, optional): The floor number for which data should be loaded. Default is 1.
 
-2. Instantiate the `Loader` object with the desired parameters:
+### Preprocessing Methods
+The Loader class supports the following preprocessing methods:
+1. Standard Scaler: Uses sklearn.preprocessing.StandardScaler for data standardization.
+2. Min-Max Scaler: Uses sklearn.preprocessing.MinMaxScaler for data normalization to a given range.
+3. Normalization: Uses sklearn.preprocessing.Normalizer for data normalization to unit norm.
 
-    ```python
-    loader = Loader(path='path/to/dataset.pkl', frac=0.2)
-    ```
+The appropriate preprocessing method is selected based on the preprocessor parameter during object initialization.
 
-    Available parameters:
+### Example Usage
+```python
+# Create a Loader object with custom parameters
+dataset = Loader(
+    path='path_to_data_directory',
+    frac=0.2,
+    preprocessor='min_max_scaler',
+    prefix='IPS-EXPERIMENT',
+    no_val_rss=-90,
+    floor=2
+)
 
-    - `path` (str): The path to the dataset file.
-    - `cache` (bool): Flag indicating whether to use cache.
-    - `cache_fname` (str): The filename for caching the processed data.
-    - `frac` (float): Fraction of the dataset to load.
-    - `preprocessor` (str): Preprocessing method to use ('standard_scaler', 'min_max_scaler', or 'normalization').
-    - `unnamed_ap_val` (int): Value to replace the minimum RSSI value.
-    - `prefix` (str): Prefix for log messages.
+# Load and preprocess the data
+dataset.load_data()
+dataset.process_data()
 
-3. Access the processed training and testing data using the `training_df` and `testing_df` attributes:
-
-    ```python
-    training_data = loader.training_df
-    testing_data = loader.testing_df
-    ```
-
-4. Customize the class based on your requirements. You can modify the preprocessing methods, caching behavior, and file locations as needed.
+# Access preprocessed training and testing data
+print(dataset.training_data)
+print(dataset.testing_data)
+```
 
 ### Notes
 
-- The dataset file should be in cloudpickle format.
-- Ensure that the required packages (NumPy, Pandas, Cloudpickle, Scikit-learn) are installed.
-
+- The dataset file should be in csv format.
+- Ensure that the required packages (NumPy, Pandas, Scikit-learn) are installed
 
 ## Progress Reports
+
+### 2023/07/17
+Reworking on loader and preprocessing to match the characteristics of new dataset.
+
+### 2023/07/02
+Started working on Deep AutoEncoder model to reduct the features of dataset. 
 
 ### 2023/06/30
 Dataset loader has been created. Due to data unavailability as of now, preprocessing is delayed. The main goal for now is to load the data using pickling method and convert it into several pandas DataFrames.
 
-### 2023/07/02
-Started working on Deep AutoEncoder model to reduct the features of dataset. 
+
