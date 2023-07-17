@@ -5,25 +5,21 @@ import os
 import sys
 import numpy as np
 import pandas as pd
-import cloudpickle as cp
 
 class Loader(object):
     def __init__(self,
                  path='../datas/dataset.csv',
-                 cache=True,
-                 cache_fname=None,
                  frac=0.1,
                  preprocessor='standard_scaler',
-                 unnamed_ap_val=-110,
-                 prefix='IPS-LOADER'
+                 prefix='IPS-LOADER',
+                 no_val_rss=100
                  ):
         self.path = path
-        self.cache = cache
-        self.cache_fname = cache_fname
         self.frac = frac
         self.prepocessor = preprocessor
-        self.unnamed_ap_val = unnamed_ap_val
         self.prefix = prefix
+        self.no_val_rss = no_val_rss
+
         if preprocessor == 'standard_scaler':
             from sklearn.preprocessing import StandardScaler
             self.rssi_scaler = StandardScaler()
@@ -47,30 +43,16 @@ class Loader(object):
         self.training_df = None
         self.testing_data = None
         self.testing_df = None
-        self.cache_loaded = False
         self.load_data() # Load the Data
         if not self.cache_loaded:
             self.process_data()
             self.save_data()
 
     def load_data(self):
-        with open(self.path, 'rb') as input_file:
-            self.training_data = cp.load(input_file)
-            self.training_df = cp.load(input_file)
-            self.testing_data = cp.load(input_file)
-            self.testing_df = cp.load(input_file)
+        self.training_df = pd.read_csv(self.training_fname, header=0, frac=self.frac)
+        self.testing_df = pd.read_csv(self.testing_fname, header=0, frac=self.frac)
         
-        self.training_df = pd.read_csv(
-            self.training_fname,
-            header=0,
-            frac=self.frac
-        )
-        self.testing_df = pd.read_csv(
-            self.testing_fname,
-            header=0,
-            frac=self.frac
-        )
-        self.no_waps = [cols for cols in self.training_df.columns if 'WAP' in cols]
+        self.no_waps = [cols for cols in self.training_df.columns if 'AP' in cols]
         self.waps_size = len(self.no_waps)
 
         if self.frac < 1.0:
@@ -78,25 +60,51 @@ class Loader(object):
             self.testing_df = self.testing_df.sample(frac=self.frac)
 
     def process_data(self):
-        training_rss = np.asarray(self.training_df[self.no_waps], dtype=float)
-        training_rss[training_rss == -155] = self.unnamed_ap_val # Set the Min RSSI Value to Lowest AP Val to be processed
-        testing_rss = np.asarray(self.testing_df[self.no_waps], dtype=float)
-        testing_rss[testing_rss == -155] = self.unnamed_ap_val # Set the Min RSSI Value to Lowest AP Val to be processed
+        
+        # Get min and max rss values of training dan testing data
+        rss_min_train, rss_max_train = self.get_min_max_rss(self.training_df)
+        rss_min_train, rss_max_test = self.get_min_max_rss(self.testing_df)
 
-        # Scaling over Flattened Data
-        if self.rssi_preprocessing != None:
-            training_rss_scaled = (self.rssi_scaler.fit_transform(
-                training_rss.reshape((-1, 1)))).reshape(training_rss.shape)
-            testing_rss_scaled = (self.rssi_scaler.fit_transform(
-                testing_rss.reshape((-1, 1)))).reshape(testing_rss.shape)
+        # Fill missing values rssi values with 100
+        no_waps = self.no_waps
+        self.training_df[no_waps] = self.training_df[no_waps].fillna(self.no_val_rss)
+        self.testing_df[no_waps] = self.testing_df[no_waps].fillna(self.no_val_rss)
+
+        rss_training = np.assarray(self.training_df[no_waps])
+        rss_testing = np.asarray(self.testing_df[no_waps])
+        
+        # Scale the flattened rssi data
+        if self.rssi_scaler is not None:
+            rss_training_scaled = (self.rssi_scaler.fit_transform(
+                rss_training.reshape((-1, 1)))).reshape(rss_training.shape)
+            rss_testing_scaled = (self.rssi_scaler.fit_transform(
+                rss_testing.reshape((-1, 1)))).reshape(rss_testing.shape)
         else:
-            training_rss_scaled = training_rss
-            testing_rss_scaled = testing_rss
-
+            rss_training_scaled = rss_training
+            rss_testing_scaled = rss_testing
+        
         # Process Coords
+        training_coord_x = np.asarray(self.training_df['LONGITUDE'], dtype=float)
+        training_coord_y = np.asarray(self.training_df['LATITUDE'], dtype=float)
+        training_coords = np.column_stack((training_coord_x, training_coord_y))
 
-        # Trilaterates
+        testing_coord_x = np.asarray(self.testing_df['LONGITUDE'], dtype=float)
+        testing_coord_y = np.asarray(self.testing_df['LATITUDE'], dtype=float)
+        testing_coords = np.column_stack((testing_coord_x, testing_coord_y))
 
+        # Scale the stacked coords data
+        if self.coords_preprocessing is not None:
+            training_coords_scaled = self.coords_preprocessing.fit_transform(training_coords)
+            testing_coords_scaled = self.coords_preprocessing.fit_transform(testing_coords)
+        else:
+            training_coords_scaled = training_coords
+            training_coords_scaled = testing_coords
         
     def save_data(self):
         pass
+
+    def get_min_max_rss(self, data):
+        min_val = data[self.no_waps].min().min()
+        max_val = data[self.no_waps].max().max()
+
+        return min_val, max_val
