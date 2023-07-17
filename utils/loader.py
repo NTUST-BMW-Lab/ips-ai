@@ -12,13 +12,15 @@ class Loader(object):
                  frac=0.1,
                  preprocessor='standard_scaler',
                  prefix='IPS-LOADER',
-                 no_val_rss=100
+                 no_val_rss=100,
+                 floor=1
                  ):
         self.path = path
         self.frac = frac
         self.prepocessor = preprocessor
         self.prefix = prefix
         self.no_val_rss = no_val_rss
+        self.floor = floor
 
         if preprocessor == 'standard_scaler':
             from sklearn.preprocessing import StandardScaler
@@ -44,13 +46,13 @@ class Loader(object):
         self.testing_data = None
         self.testing_df = None
         self.load_data() # Load the Data
-        if not self.cache_loaded:
-            self.process_data()
-            self.save_data()
 
     def load_data(self):
         self.training_df = pd.read_csv(self.training_fname, header=0, frac=self.frac)
         self.testing_df = pd.read_csv(self.testing_fname, header=0, frac=self.frac)
+
+        self.training_df = self.training_df[self.training_df['floor'] == self.floor]
+        self.testing_df = self.testing_df[self.testing_df['floor'] == self.floor]
         
         self.no_waps = [cols for cols in self.training_df.columns if 'AP' in cols]
         self.waps_size = len(self.no_waps)
@@ -58,6 +60,11 @@ class Loader(object):
         if self.frac < 1.0:
             self.training_df = self.training_df.sample(frac=self.frac)
             self.testing_df = self.testing_df.sample(frac=self.frac)
+        
+        print('Training Data Loaded: ')
+        print(self.training_df)
+        print('Testing Data Loaded: ')
+        print(self.testing_df)
 
     def process_data(self):
         
