@@ -72,6 +72,26 @@ print(dataset.testing_data)
 - The dataset file should be in csv format.
 - Ensure that the required packages (NumPy, Pandas, Scikit-learn) are installed
 
+## Models
+
+### Random Forest (random_forest.py)
+implements a Random Forest Regression model with hyperparameter tuning using RandomizedSearchCV. This script includes functions for training the model, evaluating its performance, and saving the evaluation results, visualizations, and the trained model.
+
+#### Main Functions
+1. Hyperparameter tuning for the Random Forest model using RandomizedSearchCV.
+2. Training the Random Forest model with the best hyperparameters.
+3. Evaluating the model's performance using Mean Squared Error (MSE) and R-squared (R2) score on the testing set.
+4. Creating visualizations of the true vs. predicted coordinates.
+5. Saving the evaluation results and visualizations in a dedicated folder.
+
+#### Training Model
+Apply the Random Forest algorithm with hyperparameter tuning using RandomizedSearchCV.
+
+Parameters:
+1. `training_data` (namedtuple): Training data containing 'rss', 'rss_scaled', 'rss_scaler', and 'labels'.
+2. `testing_data` (namedtuple): Testing data containing 'rss', 'rss_scaled', and 'labels'.
+3. `random_state` (int, optional): Random seed for reproducibility. Default is None.
+
 ## Progress Reports
 
 ### 2023/07/17
