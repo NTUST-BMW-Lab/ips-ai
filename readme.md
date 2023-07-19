@@ -7,6 +7,8 @@ This repository is a framework for Indoor Positioning with Machine Learning appr
 RSSI Data crawling will be done in Dorm 1 in National Taiwan University of Science and Technology. Floor plan of the location can been seen below.
 ![1st Floor Plan](./assets/1f_plan.png)
 
+*Green dots are pinpoint locations of additional APs to be placed*
+
 ## Requirements
 
 - Python 3.x
@@ -125,9 +127,6 @@ random_search = RandomizedSearchCV(
 5. `cv`: The number of folds in the cross-validation process. In this case, we use 3-fold cross-validation. Cross-validation helps to estimate the model's performance on unseen data and reduces overfitting.
 6. `random_state`: The random seed for reproducibility. Setting a specific value ensures that the random sampling of hyperparameters is reproducible, meaning you will get the same results when running the tuning process multiple times.
 7. `n_jobs`: The number of CPU cores to use for parallel processing. In this case, we set n_jobs=-1, which means to use all available cores. Parallel processing speeds up the hyperparameter tuning process, especially when there are multiple hyperparameter combinations to evaluate.
-
-
-
 
 #### Training Model
 Apply the Random Forest algorithm with hyperparameter tuning using RandomizedSearchCV.
