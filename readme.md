@@ -5,7 +5,7 @@ This repository is a framework for Indoor Positioning with Machine Learning appr
 
 ## Crawling Environment
 RSSI Data crawling will be done in Dorm 1 in National Taiwan University of Science and Technology. Floor plan of the location can been seen below.
-// Insert Image Here
+![1st Floor Plan](./assets/1f_plan.png)
 
 ## Requirements
 
@@ -13,6 +13,9 @@ RSSI Data crawling will be done in Dorm 1 in National Taiwan University of Scien
 - NumPy
 - Pandas
 - Scikit-learn
+- Pickle (File storing and loading)
+- Matplotlib (Visualizations)
+- Tensorflow (Deep Learning)
 
 ## Dataset Loader
 
@@ -83,6 +86,48 @@ implements a Random Forest Regression model with hyperparameter tuning using Ran
 3. Evaluating the model's performance using Mean Squared Error (MSE) and R-squared (R2) score on the testing set.
 4. Creating visualizations of the true vs. predicted coordinates.
 5. Saving the evaluation results and visualizations in a dedicated folder.
+
+#### Hyperparameter Tuning
+In machine learning, models have certain parameters that are learned during the training process, such as the weights in neural networks. However, hyperparameters are settings or configurations that are determined before the training process begins. These hyperparameters influence the learning process and performance of the model but are not directly learned from the data.
+
+In this case, there are two parameters that will be tuned:
+1. n_estimators: This hyperparameter determines the number of decision trees to be built in the Random Forest. Increasing the number of estimators generally improves performance, but it also increases computational complexity.
+2. max_depth: The maximum depth allowed for each decision tree in the Random Forest. Limiting the depth helps prevent overfitting, as deeper trees can memorize noise in the training data.
+
+These two parameters are crucial for the model performance, hence a hyperparemeter tuning method is used to evaluate each value performance in the provided dataset. `RandomizedSearchCV` is used and it is a process to search for the best set of hyperparameters for a machine learning model to achieve optimal performance. It works by performing a randomized search over a specified hyperparameter space to find the best combination of hyperparameters for a given machine learning model. 
+It is a part of the scikit-learn library, and its main goal is to efficiently explore the hyperparameter space without trying out all possible combinations.
+
+```python
+param_grid = {
+        'n_estimators': [50, 100, 150],
+        'max_depth': [None, 10, 20, 30]
+    }
+```
+Above is sets of parameters and their value combinations to be randomly searched.
+
+Parameters of RandomizedSearchCV used:
+```python
+random_search = RandomizedSearchCV(
+    estimator=rf_regressor,
+    param_distributions=param_grid,
+    n_iter=10,
+    scoring='neg_mean_squared_error',
+    cv=3,
+    random_state=random_state,
+    n_jobs=-1
+)
+```
+
+1. `estimator`: The base machine learning model (in this case, rf_regressor) that you want to tune. RandomizedSearchCV will create different instances of this model with various hyperparameter combinations and evaluate their performance.
+2. `param_distributions`: A dictionary that maps hyperparameter names to their possible values or distributions. For example, {'n_estimators': [50, 100, 150], 'max_depth': [None, 10, 20, 30]} indicates that n_estimators will be randomly selected from [50, 100, 150], and max_depth will be randomly selected from [None, 10, 20, 30]. RandomizedSearchCV will sample hyperparameters from these distributions during the search.
+3. `n_iter`: The number of parameter settings that are sampled. It defines the number of random combinations of hyperparameters to try. The larger the value, the more combinations will be tested, potentially leading to better results. However, a larger value will also increase the computation time.
+4. `scoring`: The scoring metric used to evaluate the performance of different hyperparameter combinations. In this case, we use 'neg_mean_squared_error', which means that the mean squared error (MSE) will be used as the evaluation metric. Since RandomizedSearchCV maximizes the score, we use negative MSE to find the combination with the lowest MSE.
+5. `cv`: The number of folds in the cross-validation process. In this case, we use 3-fold cross-validation. Cross-validation helps to estimate the model's performance on unseen data and reduces overfitting.
+6. `random_state`: The random seed for reproducibility. Setting a specific value ensures that the random sampling of hyperparameters is reproducible, meaning you will get the same results when running the tuning process multiple times.
+7. `n_jobs`: The number of CPU cores to use for parallel processing. In this case, we set n_jobs=-1, which means to use all available cores. Parallel processing speeds up the hyperparameter tuning process, especially when there are multiple hyperparameter combinations to evaluate.
+
+
+
 
 #### Training Model
 Apply the Random Forest algorithm with hyperparameter tuning using RandomizedSearchCV.
