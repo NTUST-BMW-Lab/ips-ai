@@ -1,9 +1,15 @@
 # @file     randomforest.py
 # @author   danielandrewr
 
+import os
+import datetime
+import pandas as pd
+import matplotlib.pyplot as plt
+import pickle
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, r2_score
+
 
 def random_forest(
        training_data=None,
@@ -61,5 +67,47 @@ def random_forest(
 
     # Count the MSE of the inverse-transformed coords
     mse = mean_absolute_error(test_labels.coords, predicted_coords)
+    r2_score_rf = r2_score(test_labels.coords, predicted_coords)
 
-    return rf_model, mse
+    return rf_model, mse, r2_score_rf, predicted_coords
+
+def evaluate(
+        model_name,
+        model,
+        mse,
+        r2_score_rf,
+        predicted_coords,
+        folder_destination='../evaluation/'
+    ):
+    """
+    Evaluate the model, create visualizations, and save them to the specified folder.
+
+    Parameters:
+        model_name (str): Name of the model for creating the folder.
+        model: Trained machine learning model.
+        mse (float): Mean squared error (MSE) on the testing set.
+        r2_score_rf (float): R-squared (R2) score on the testing set.
+        predicted_coords: Predicted coordinates on the testing set.
+        folder_destination (str): Folder path to save the visualizations. Default is "evaluation".
+
+    Returns:
+        None
+    """
+
+    # Create the folder if it doesn't exist
+    date_now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    folder_path = os.path.join(folder_destination, f"{model_name}_{date_now}")
+    os.makedirs(folder_path, exist_ok=True)
+
+    # Save the evaluation results to a CSV file
+    evaluation_df = pd.DataFrame({'MSE': [mse], 'R2-Score': [r2_score_rf]})
+    evaluation_df.to_csv(os.path.join(folder_destination), 'evaluation_results.csv')
+
+    # Plotting
+    plt.figure(figsize=(8,6))
+    
+    model_filename = os.path.join(folder_path, 'trained_model.pkl')
+    with open(model_filename, 'wb') as file:
+        pickle.dump(model, file)
+    
+    print(f'Evaluations and Model has been saved to ~/evaluation/{model_filename}')
