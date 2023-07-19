@@ -6,6 +6,7 @@ import sys
 import argparse
 import numpy as np
 import pandas as pd
+from collections import namedtuple
 
 '''
 USAGE: 
@@ -44,8 +45,8 @@ class Loader(object):
             print('{} - Preprocessing Method is not Supported!', self.prefix)
             sys.exit(0)
         
-        self.training_fname = path + '/trainingData.csv'
-        self.testing_fname = path + '/testingData.csv'
+        self.training_fname = path + 'trainingData.csv'
+        self.testing_fname = path + 'testingData.csv'
         self.num_aps = 0
         self.training_data = None
         self.training_df = None
@@ -110,20 +111,46 @@ class Loader(object):
             training_coords_scaled = training_coords
             training_coords_scaled = testing_coords
         
-        # print('rssi data')
-        # print(rss_training)
-        # print(rss_testing)
-        # print('\n')
-        # print('Scaled rssi data')
-        # print(rss_training_scaled)
-        # print(rss_testing_scaled)
-        # print('\n')
-        # print('coords data')
-        # print(training_coords)
-        # print(testing_coords)
-        # print('scaled coords data')
-        # print(training_coords_scaled)
-        # print(testing_coords_scaled)
+        TrainData = namedtuple('TrainData', [
+            'rss', 'rss_scaled', 'rss_scaler', 'labels'
+        ])
+        TrainLabel = namedtuple('TrainLabel', [
+            'coords', 'coords_scaled', 'coords_scaler'
+        ])
+        TestData = namedtuple('TestData', [
+            'rss', 'rss_scaled', 'labels'
+        ])
+        TestLabel = namedtuple('TestLabel', [
+            'coords', 'coords_scaled', 'coords_scaler'
+        ])
+
+        training_labels = TrainLabel(
+            coords=training_coords,
+            coords_scaled=training_coords_scaled,
+            coords_scaler=self.coords_preprocessing
+        )
+
+        self.training_data = TrainData(
+            rss=rss_training,
+            rss_scaled=rss_training_scaled,
+            rss_scaler=self.rssi_scaler,
+            labels=training_labels
+        )
+        
+        testing_labels = TestLabel(
+            coords=testing_coords,
+            coords_scaled=testing_coords_scaled,
+            coords_scaler=self.coords_preprocessing
+        )
+
+        self.testing_data = TestData(
+            rss=rss_testing,
+            rss_scaled=rss_testing_scaled,
+            labels=testing_labels
+        )
+
+        #print(self.training_data)
+        #print(self.testing_data)
         
     def save_data(self):
         pass
