@@ -1,41 +1,41 @@
-# @file     randomforest.py
+# @file     svr.py
 # @author   danielandrewr
 
+from sklearn.svm import SVR
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error as mse, r2_score as r2
 
 from regression_model import RegressionModel
 
-class RandomForest(RegressionModel):
-    def __init__(self, random_state=None):
+class svr(RegressionModel):
+    def __init__(self, random_state):
         self.random_state = random_state
         self.model = None
     
     def train(self, x_train_scaled, train_labels):
         # Define the hyperparameters search space
         param_grid = {
-            'n_estimators': [50, 100, 150],
-            'max_depth': [None, 10, 20, 30]
+            'kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
+            'C': [0.1, 1.0, 10.0, 100.0],
+            'gamma': ['scale', 'auto', 0.001, 0.01, 0.1, 1.0]
         }
-        rf_regressor = RandomForestRegressor(random_state=self.random_state)
 
+        svr_model = SVR()
+        
         # RandomSearch initialization for hyperparameter tuning
         random_search = RandomizedSearchCV(
-            estimator=rf_regressor,
+            estimator=svr_model,
             param_distributions=param_grid,
             n_iter=10,
-            scoring='neg_mean_squared_error', # neg_mean_squared_error for evaluation metric.
-            cv=3, # balanced value for cross-validation
+            scoring='neg_mean_squared_error',  # neg_mean_squared_error for evaluation metric.
+            cv=3,  # balanced value for cross-validation
             random_state=self.random_state,
-            n_jobs=-1 # use all available cores
+            n_jobs=-1  # use all available cores
         )
 
-        # Perform hyperparameter tuning to the training data
         random_search.fit(x_train_scaled, train_labels.coords_scaled)
-
-        best_params = random_search.best_params_ # Get the best parameters
-        self.model = RandomForestRegressor(**best_params, random_state=self.random_state)
+        best_params = random_search.best_params_
+        self.model = SVR(**best_params)
         self.model.fit(x_train_scaled, train_labels.coords_scaled)
 
     def predict(self, x_test_scaled, test_labels):
