@@ -20,7 +20,8 @@ class Loader(object):
                  preprocessor='standard_scaler',
                  prefix='IPS-LOADER',
                  no_val_rss=100,
-                 floor=1
+                 floor=1,
+                 test_size=0.2
                  ):
         self.path = path
         self.frac = frac
@@ -28,6 +29,7 @@ class Loader(object):
         self.prefix = prefix
         self.no_val_rss = no_val_rss
         self.floor = floor
+        self.test_size = test_size
 
         if preprocessor == 'standard_scaler':
             from sklearn.preprocessing import StandardScaler
@@ -47,6 +49,7 @@ class Loader(object):
         
         self.training_fname = path + 'trainingData.csv'
         self.testing_fname = path + 'testingData.csv'
+        self.data_fname = path + 'data.csv'
         self.num_aps = 0
         self.training_data = None
         self.training_df = None
@@ -56,11 +59,18 @@ class Loader(object):
         self.process_data()
 
     def load_data(self):
-        self.training_df = pd.read_csv(self.training_fname, header=0)
-        self.testing_df = pd.read_csv(self.testing_fname, header=0)
+        data = pd.read_csv(self.data_fname, header=0)
+        data = data[data['floor'] == self.floor]
 
-        self.training_df = self.training_df[self.training_df['floor'] == self.floor]
-        self.testing_df = self.testing_df[self.testing_df['floor'] == self.floor]
+        from sklearn.model_selection import train_test_split as tts
+        train_data, test_data = tts(data, test_size=self.test_size)
+        self.training_df = pd.DataFrame(train_data)
+        self.testing_df = pd.DataFrame(test_data)
+        #self.training_df = pd.read_csv(self.training_fname, header=0)
+        #self.testing_df = pd.read_csv(self.testing_fname, header=0)
+
+        #self.training_df = self.training_df[self.training_df['floor'] == self.floor]
+        #self.testing_df = self.testing_df[self.testing_df['floor'] == self.floor]
         
         self.no_waps = [cols for cols in self.training_df.columns if 'AP' in cols]
         self.waps_size = len(self.no_waps)
@@ -69,14 +79,14 @@ class Loader(object):
             self.training_df = self.training_df.sample(frac=self.frac)
             self.testing_df = self.testing_df.sample(frac=self.frac)
         
-        # print('Training Data Loaded: ')
-        # print(self.training_df['floor'])
+        #print('Training Data Loaded: ')
+        #print(self.training_df['floor'])
 
-        # print('Testing Data Loaded: ')
-        # print(self.testing_df['floor'])
+        #print('Testing Data Loaded: ')
+        #print(self.testing_df['floor'])
 
     def process_data(self):
-        # Fill missing values rssi values with 100
+        # Fill missing values rssi values with no_val_rss
         no_waps = self.no_waps
         self.training_df[no_waps] = self.training_df[no_waps].fillna(self.no_val_rss)
         self.testing_df[no_waps] = self.testing_df[no_waps].fillna(self.no_val_rss)
@@ -159,6 +169,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
+        '--dp',
+        '--data_path',
+        help='Data folder path',
+        dest='data_path',
+        default='../datas/',
+        type=str
+    )
+    parser.add_argument(
         '--p',
         '--preprocessor',
         help='preprocessor method',
@@ -190,15 +208,27 @@ if __name__ == '__main__':
         default=1,
         type=int
     )
+    parser.add_argument(
+        '--t',
+        '--test_size',
+        help='Test Size portion over Train Size',
+        dest='test_size',
+        default=0.2,
+        type=float
+    )
     args = parser.parse_args()
+    data_path = args.data_path
     preprocessor = args.preprocessor
     frac = args.frac
     novalrss = args.novalrss
     floor = args.floor
+    test_size = args.test_size
 
     dataset = Loader(
+        path=data_path,
         preprocessor=preprocessor,
         frac=frac,
         no_val_rss=novalrss,
-        floor=floor
+        floor=floor,
+        test_size=test_size
     )

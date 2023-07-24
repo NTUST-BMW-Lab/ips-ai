@@ -4,7 +4,7 @@ import datetime
 import matplotlib.pyplot as plt
 import pickle
 
-def save(self, model_name, mse_val, r2_val, predicted_coords, folder_dest='../evaluation'):
+def save(model_name, mse_val, r2_val, predicted_coords, folder_dest='../evaluation'):
         # Create the folder if it doesn't exist
         date_now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         folder_path = os.path.join(folder_dest, f"{model_name}_{date_now}")

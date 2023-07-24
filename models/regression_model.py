@@ -10,9 +10,5 @@ class RegressionModel(ABC):
         pass
     
     @abstractmethod
-    def evaluate(self, testing_data, predicted_coords):
-        pass
-
-    @abstractmethod
-    def save(self, model_name, mse_val, r2_val, predicted_coords, folder_dest='../evaluation'):
+    def evaluate(self, test_labels, predicted_coords):
         pass
