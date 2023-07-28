@@ -4,7 +4,7 @@ import datetime
 import matplotlib.pyplot as plt
 import pickle
 
-def save(model_name, mse_val, r2_val, predicted_coords, folder_dest='../evaluation'):
+def save(model_name, model, mse_val, r2_val, predicted_coords, folder_dest='../evaluation'):
         # Create the folder if it doesn't exist
         date_now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         folder_path = os.path.join(folder_dest, f"{model_name}_{date_now}")
@@ -20,6 +20,6 @@ def save(model_name, mse_val, r2_val, predicted_coords, folder_dest='../evaluati
         
         model_filename = os.path.join(folder_path, f'{model_name}_{date_now}.pkl')
         with open(model_filename, 'wb') as file:
-            pickle.dump(self.model, file)
+            pickle.dump(model, file)
         
         print(f'Evaluations and Model has been saved to ~/evaluation/{model_filename}')

@@ -66,11 +66,6 @@ class Loader(object):
         train_data, test_data = tts(data, test_size=self.test_size)
         self.training_df = pd.DataFrame(train_data)
         self.testing_df = pd.DataFrame(test_data)
-        #self.training_df = pd.read_csv(self.training_fname, header=0)
-        #self.testing_df = pd.read_csv(self.testing_fname, header=0)
-
-        #self.training_df = self.training_df[self.training_df['floor'] == self.floor]
-        #self.testing_df = self.testing_df[self.testing_df['floor'] == self.floor]
         
         self.no_waps = [cols for cols in self.training_df.columns if 'AP' in cols]
         self.waps_size = len(self.no_waps)
@@ -158,9 +153,6 @@ class Loader(object):
             rss_scaled=rss_testing_scaled,
             labels=testing_labels
         )
-
-        #print(self.training_data)
-        #print(self.testing_data)
         
     def save_data(self):
         pass
