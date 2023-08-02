@@ -10,6 +10,36 @@ from sklearn.metrics import mean_absolute_error as mse, r2_score as r2
 from .regression_model import RegressionModel
 
 class SVR(RegressionModel):
+    """
+    A class representing a Support Vector Regression (SVR) model for predicting coordinates.
+
+    Parameters:
+        random_state (int, optional): Seed value for reproducibility. Default is None.
+
+    Attributes:
+        random_state (int, optional): Seed value for reproducibility.
+        model (object): The SVR model.
+        params (dict, optional): The hyperparameters for SVR (not used in this implementation).
+
+    Methods:
+        __init__(random_state=None): Constructor method that initializes the SVR object.
+        train(x_train_scaled, train_labels): Trains the SVR model using the given training data and labels.
+        predict(x_test_scaled, test_labels): Predicts the coordinates for the given test data.
+        evaluate(test_labels, predicted_coords): Evaluates the model's performance using Mean Squared Error (MSE) 
+                                                  and R-squared (R2) metrics and prints the results.
+
+    Inherited Attributes:
+        Inherits attributes from the RegressionModel class.
+
+    Inherited Methods:
+        Inherits methods from the RegressionModel class.
+
+    Note:
+        - The hyperparameter tuning using RandomizedSearchCV is commented out in this implementation.
+        - The 'params' attribute is not used in this implementation and remains None.
+        - The 'ScikitSVR' class is assumed to be a valid implementation of SVR from Scikit-learn.
+        - The 'mse' and 'r2' functions are assumed to be available for calculating performance metrics.
+    """
     def __init__(self, random_state=None):
         self.random_state = random_state
         self.model = None

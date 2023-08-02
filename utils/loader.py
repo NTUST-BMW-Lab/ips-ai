@@ -23,6 +23,45 @@ class Loader(object):
                  floor=1,
                  test_size=0.2
                  ):
+        """
+        A class for loading and preprocessing data for Indoor Positioning Systems (IPS).
+
+        Parameters:
+            path (str): The path to the directory containing the data files. Default is '../datas/'.
+            frac (float): The fraction of data to use for training and testing. Default is 0.1.
+            preprocessor (str): The type of data preprocessing to be applied. Supported options are 'standard_scaler',
+                                'min_max_scaler', and 'normalization'. Default is 'standard_scaler'.
+            prefix (str): A prefix to be used for print messages. Default is 'IPS-LOADER'.
+            no_val_rss (int): The value to be used for filling missing RSSI (Received Signal Strength Indicator) values.
+                            Default is 100.
+            floor (int): The floor number to use for filtering the data. Default is 1.
+            test_size (float): The proportion of data to be used for testing. Default is 0.2.
+
+        Attributes:
+            path (str): The path to the directory containing the data files.
+            frac (float): The fraction of data to use for training and testing.
+            preprocessor (str): The type of data preprocessing to be applied.
+            prefix (str): A prefix to be used for print messages.
+            no_val_rss (int): The value to be used for filling missing RSSI values.
+            floor (int): The floor number used for filtering the data.
+            test_size (float): The proportion of data used for testing.
+            rssi_scaler (object): The RSSI scaler object based on the specified preprocessing method.
+            coords_preprocessing (object): The coordinates scaler object based on the specified preprocessing method.
+            training_fname (str): The file path for the training data.
+            testing_fname (str): The file path for the testing data.
+            data_fname (str): The file path for the original data.
+            num_aps (int): The number of Access Points (APs) in the dataset.
+            training_data (namedtuple): A named tuple containing training data attributes.
+            training_df (pandas.DataFrame): The training data in a pandas DataFrame.
+            testing_data (namedtuple): A named tuple containing testing data attributes.
+            testing_df (pandas.DataFrame): The testing data in a pandas DataFrame.
+
+        Methods:
+            __init__(): Constructor method that initializes the Loader object.
+            load_data(): Loads the data from the specified file, filters by floor, and splits it into training and testing sets.
+            process_data(): Processes the loaded data by filling missing values and scaling RSSI and coordinates data.
+            save_data(): Placeholder method for saving data (to be implemented if needed).
+        """
         self.path = path
         self.frac = frac
         self.prepocessor = preprocessor

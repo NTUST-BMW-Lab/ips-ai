@@ -8,6 +8,30 @@ from sklearn.metrics import mean_absolute_error as mse, r2_score as r2
 from .regression_model import RegressionModel
 
 class RandomForest(RegressionModel):
+    """
+    A class representing a RandomForest regression model for predicting coordinates using hyperparameter tuning.
+
+    Parameters:
+        random_state (int, optional): Seed value for reproducibility. Default is None.
+
+    Attributes:
+        random_state (int, optional): Seed value for reproducibility.
+        model (object): The RandomForestRegressor model after hyperparameter tuning.
+        params (dict): The best hyperparameters found during hyperparameter tuning.
+
+    Methods:
+        __init__(random_state=None): Constructor method that initializes the RandomForest object.
+        train(x_train_scaled, train_labels): Trains the RandomForest model using hyperparameter tuning.
+        predict(x_test_scaled, test_labels): Predicts the coordinates for the given test data.
+        evaluate(test_labels, predicted_coords): Evaluates the model's performance using Mean Squared Error (MSE) 
+                                                  and R-squared (R2) metrics and prints the results.
+
+    Inherited Attributes:
+        Inherits attributes from the RegressionModel class.
+
+    Inherited Methods:
+        Inherits methods from the RegressionModel class.
+    """
     def __init__(self, random_state=None):
         self.random_state = random_state
         self.model = None
