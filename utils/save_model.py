@@ -73,4 +73,4 @@ def save_model_dnn(model_name, xr_mse, yr_mse, xr_r2, yr_r2, xr_test, yr_test, x
 
     plt.close()
 
-    print(f'Evaluations and Model has been saved to {folder_path}.')
+    print(f'Evaluation and Visualizations have been saved to {folder_path}.')
