@@ -73,7 +73,7 @@ class DNN_Regression(DNN):
         print('no waps ', self.no_waps)
         # initialize randoms
         if self.random_state != None:
-            np.random(self.random_state)
+            np.random.seed(self.random_state)
             tf.random.set_seed(self.random_state)
         
     def build_model(self):
