@@ -11,6 +11,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 from collections import namedtuple
 from dnn import DNN
+from utils.save_model import save_model_dnn
 
 class DNN_Regression(DNN):
     def __init__(
@@ -189,31 +190,17 @@ class DNN_Regression(DNN):
         print('-=-=-=-=-=-=-=-=- Metrics Evaluation -=-=-=-=-=-=-=-=-')
 
         if self.save_model:
-            sample = np.arange(len(xr_test))
-            plt.figure(figsize=(12,6))
-            plt.subplot(1, 2, 1)
-            plt.plot(sample, xr_test, color='r', label='Actual')
-            plt.plot(sample, xr_pred, color='b', label='Predicted')
-            plt.xlabel('Sample')
-            plt.ylabel('X Position (Relative)')
-            plt.title('Actual vs Predicted of X Relative Coordinate')
-            plt.legend()
-
-            plt.subplot(1, 2, 2)
-            plt.plot(sample, yr_test, color='r', label='Actual')
-            plt.plot(sample, yr_pred, color='b', label='Predicted')
-            plt.xlabel('Sample')
-            plt.ylabel('Y Position (Relative)')
-            plt.title('Actual vs Predicted of Y Relative Coordinate')
-            plt.legend()
-
-            plt.tight_layout()
-
-            xr_fname = os.path.join('../evaluation')
-            plt.savefig('actual_predicted_xr.png', format='png')
-            plt.savefig('actual_predicted_yr.png', format='png')
-
-            plt.close()
+            save_model_dnn(self.model_name, 
+                           self.model, 
+                           xr_mse=xr_mse,
+                           yr_mse=yr_mse,
+                           xr_r2=xr_r2,
+                           yr_r2=yr_r2,
+                           xr_test=xr_test,
+                           yr_test=yr_test,
+                           xr_pred=xr_pred,
+                           yr_pred=yr_pred
+            )
 
 
 
