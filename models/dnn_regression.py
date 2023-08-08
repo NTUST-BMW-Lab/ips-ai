@@ -10,15 +10,15 @@ from keras.models import Model
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 from collections import namedtuple
-from dnn import DNN
+from .dnn import DNN
 from utils.save_model import save_model_dnn
 
 class DNN_Regression(DNN):
     def __init__(
             self,
-            training_data=namedtuple,
+            training_data=None,
             testing_data=namedtuple,
-            random_state=None,
+            random_state=namedtuple,
             preprocessor='standard_scaler',
             batch_size=8,
             epochs=10,
@@ -45,6 +45,9 @@ class DNN_Regression(DNN):
         self.save_model = save_model
         self.model = None
 
+        self.training_data = training_data
+        self.testing_data = testing_data
+
         time_now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         self.model_name = f'dnn_{time_now}'
 
@@ -63,6 +66,7 @@ class DNN_Regression(DNN):
         print(self.xr_test_scaled)
         print(self.yr_test_scaled)
 
+        print(len(self.rss_train_scaled))
         # initialize randoms
         if self.random_state != None:
             np.random(self.random_state)

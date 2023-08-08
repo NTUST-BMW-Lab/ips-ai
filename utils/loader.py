@@ -16,7 +16,8 @@ class Loader(object):
                  prefix='IPS-LOADER',
                  no_val_rss=100,
                  floor=1,
-                 test_size=0.2
+                 test_size=0.2,
+                 power=True
                  ):
         """
         A class for loading and preprocessing data for Indoor Positioning Systems (IPS).
@@ -62,6 +63,7 @@ class Loader(object):
         self.no_val_rss = no_val_rss
         self.floor = floor
         self.test_size = test_size
+        self.power = power
 
         if preprocessor == 'standard_scaler':
             from sklearn.preprocessing import StandardScaler
@@ -103,12 +105,6 @@ class Loader(object):
         if self.frac < 1.0:
             self.training_df = self.training_df.sample(frac=self.frac)
             self.testing_df = self.testing_df.sample(frac=self.frac)
-        
-        print('Training Data Loaded: ')
-        print(self.training_df['floor'])
-
-        print('Testing Data Loaded: ')
-        print(self.testing_df['floor'])
 
     def process_data(self):
         # Fill missing values rssi values with no_val_rss
@@ -150,48 +146,89 @@ class Loader(object):
             training_coords_scaled = training_coords
             training_coords_scaled = testing_coords
         
-        TrainData = namedtuple('TrainData', [
-            'rss', 'rss_scaled', 'rss_scaler', 'labels'
-        ])
-        TrainLabel = namedtuple('TrainLabel', [
-            'coords', 'coords_scaled', 'coords_scaler'
-        ])
-        TestData = namedtuple('TestData', [
-            'rss', 'rss_scaled', 'labels'
-        ])
-        TestLabel = namedtuple('TestLabel', [
-            'coords', 'coords_scaled', 'coords_scaler'
-        ])
+        # Process Power Data
+        if self.power:
+            power_data_train = self.training_df['cur_eirp']
+            power_data_test = self.testing_df['cur_eirp']
 
-        training_labels = TrainLabel(
-            coords=training_coords,
-            coords_scaled=training_coords_scaled,
-            coords_scaler=self.coords_preprocessing
-        )
+            TrainData = namedtuple('TrainData', [
+                'rss', 'rss_scaled', 'rss_scaler', 'power', 'labels'
+            ])
+            TrainLabel = namedtuple('TrainLabel', [
+                'coords', 'coords_scaled', 'coords_scaler'
+            ])
+            TestData = namedtuple('TestData', [
+                'rss', 'rss_scaled', 'power', 'labels'
+            ])
+            TestLabel = namedtuple('TestLabel', [
+                'coords', 'coords_scaled', 'coords_scaler'
+            ])
 
-        self.training_data = TrainData(
-            rss=rss_training,
-            rss_scaled=rss_training_scaled,
-            rss_scaler=self.rssi_scaler,
-            labels=training_labels
-        )
-        
-        testing_labels = TestLabel(
-            coords=testing_coords,
-            coords_scaled=testing_coords_scaled,
-            coords_scaler=self.coords_preprocessing
-        )
+            training_labels = TrainLabel(
+                coords=training_coords,
+                coords_scaled=training_coords_scaled,
+                coords_scaler=self.coords_preprocessing
+            )
 
-        self.testing_data = TestData(
-            rss=rss_testing,
-            rss_scaled=rss_testing_scaled,
-            labels=testing_labels
-        )
+            self.training_data = TrainData(
+                rss=rss_training,
+                rss_scaled=rss_training_scaled,
+                rss_scaler=self.rssi_scaler,
+                power=power_data_train,
+                labels=training_labels
+            )
+            
+            testing_labels = TestLabel(
+                coords=testing_coords,
+                coords_scaled=testing_coords_scaled,
+                coords_scaler=self.coords_preprocessing
+            )
 
-        print(len(self.testing_data.rss_scaled))
+            self.testing_data = TestData(
+                rss=rss_testing,
+                rss_scaled=rss_testing_scaled,
+                power=power_data_test,
+                labels=testing_labels
+            )
+        else:
 
-        print(self.training_data)
-        print(self.testing_data)
+            TrainData = namedtuple('TrainData', [
+                'rss', 'rss_scaled', 'rss_scaler', 'labels'
+            ])
+            TrainLabel = namedtuple('TrainLabel', [
+                'coords', 'coords_scaled', 'coords_scaler'
+            ])
+            TestData = namedtuple('TestData', [
+                'rss', 'rss_scaled', 'labels'
+            ])
+            TestLabel = namedtuple('TestLabel', [
+                'coords', 'coords_scaled', 'coords_scaler'
+            ])
+
+            training_labels = TrainLabel(
+                coords=training_coords,
+                coords_scaled=training_coords_scaled,
+                coords_scaler=self.coords_preprocessing
+            )
+
+            self.training_data = TrainData(
+                rss=rss_training,
+                rss_scaled=rss_training_scaled,
+                rss_scaler=self.rssi_scaler,
+                labels=training_labels
+            )
+            
+            testing_labels = TestLabel(
+                coords=testing_coords,
+                coords_scaled=testing_coords_scaled,
+                coords_scaler=self.coords_preprocessing
+            )
+
+            self.testing_data = TestData(
+                rss=rss_testing,
+                rss_scaled=rss_testing_scaled,
+                labels=testing_labels
+            )
         
     def save_data(self):
         pass

@@ -21,7 +21,7 @@ if __name__ == '__main__':
         '--data_path',
         help='Data folder path',
         dest='data_path',
-        default='../datas/',
+        default='./datas/',
         type=str
     )
     parser.add_argument(
@@ -107,7 +107,7 @@ if __name__ == '__main__':
             save_model=True
         )
 
-    train_model.train(training_data.rss_scaled, training_data.labels)
-    predicted_coords = train_model.predict(testing_data.rss_scaled, testing_data.labels)
-    mse_val, r2_val = train_model.evaluate(testing_data.labels, predicted_coords)
+    #train_model.train(training_data.rss_scaled, training_data.labels)
+    #predicted_coords = train_model.predict(testing_data.rss_scaled, testing_data.labels)
+    #mse_val, r2_val = train_model.evaluate(testing_data.labels, predicted_coords)
     #save(model_name=model, mse_val=mse_val, r2_val=r2_val, predicted_coords=rf_predicted_coords, folder_dest='../evaluation')
