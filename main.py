@@ -86,6 +86,7 @@ if __name__ == '__main__':
 
     training_data = dataset.training_data
     testing_data = dataset.testing_data
+    no_waps = dataset.no_waps
 
     if args.model == 'random_forest':
         train_model = RandomForest(random_state=args.random_state)
@@ -107,6 +108,7 @@ if __name__ == '__main__':
             save_model=True
         )
 
+    train_model.build_model()
     #train_model.train(training_data.rss_scaled, training_data.labels)
     #predicted_coords = train_model.predict(testing_data.rss_scaled, testing_data.labels)
     #mse_val, r2_val = train_model.evaluate(testing_data.labels, predicted_coords)
