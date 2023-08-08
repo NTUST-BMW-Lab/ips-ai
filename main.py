@@ -2,6 +2,7 @@ import argparse
 from utils.loader import Loader
 from models.random_forest import RandomForest
 from models.svr import SVR
+from models.dnn_regression import DNN_Regression
 from utils.save_model import save
 
 if __name__ == '__main__':
@@ -91,7 +92,20 @@ if __name__ == '__main__':
     elif args.model == 'svr':
         train_model = SVR(random_state=args.random_state)
     elif args.model == 'dnn':
-        pass
+        train_model = DNN_Regression(
+            training_data=training_data, 
+            testing_data=testing_data,
+            random_state=42,
+            preprocessor=args.preprocessor,
+            batch_size=8,
+            epochs=15,
+            optimizer='adam',
+            validation_split=0.2,
+            dropout=0.2,
+            tx_power=True,
+            patience=10,
+            save_model=True
+        )
 
     train_model.train(training_data.rss_scaled, training_data.labels)
     predicted_coords = train_model.predict(testing_data.rss_scaled, testing_data.labels)
