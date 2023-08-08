@@ -18,7 +18,8 @@ class DNN_Regression(DNN):
             self,
             training_data=None,
             testing_data=namedtuple,
-            random_state=namedtuple,
+            no_waps=8,
+            random_state=42,
             preprocessor='standard_scaler',
             batch_size=8,
             epochs=10,
@@ -33,6 +34,7 @@ class DNN_Regression(DNN):
         self.random_state = random_state
         self.training_data = training_data,
         self.testing_data = testing_data,
+        self.no_waps = no_waps
         self.preprocessor = preprocessor
         self.batch_size = batch_size
         self.epochs = epochs
@@ -67,19 +69,19 @@ class DNN_Regression(DNN):
         print(self.yr_test_scaled)
 
         print(len(self.rss_train_scaled))
+
+        print('no waps ', self.no_waps)
         # initialize randoms
         if self.random_state != None:
             np.random(self.random_state)
             tf.random.set_seed(self.random_state)
         
     def build_model(self):
-        num_anchor = len(self.rss_train_scaled)
-        print(num_anchor)
         
         if self.tx_power:
             # Input Layers
-            input_rss = Input(shape=(num_anchor,), name='input_rss')
-            input_power = Input(shape=(num_anchor,), name='input_power')
+            input_rss = Input(shape=(self.no_waps,), name='input_rss')
+            input_power = Input(shape=(self.no_waps,), name='input_power')
 
             # RSS Feature Extraction 
             hidden_rss = Dense(64, activation='relu')(input_rss)
@@ -112,7 +114,7 @@ class DNN_Regression(DNN):
             )
         else:
             # Input Layers
-            input_rss = Input(shape=(num_anchor,), name='input_rss')
+            input_rss = Input(shape=(self.no_waps,), name='input_rss')
 
             # RSS Feature Extraction 
             hidden_rss = Dense(64, activation='relu')(input_rss)

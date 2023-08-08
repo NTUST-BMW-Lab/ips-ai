@@ -64,6 +64,7 @@ class Loader(object):
         self.floor = floor
         self.test_size = test_size
         self.power = power
+        self.no_waps = 0
 
         if preprocessor == 'standard_scaler':
             from sklearn.preprocessing import StandardScaler
@@ -82,7 +83,6 @@ class Loader(object):
             sys.exit(0)
         
         self.data_fname = path + 'data.csv'
-        self.num_aps = 0
         self.training_data = None
         self.training_df = None
         self.testing_data = None
