@@ -8,11 +8,6 @@ import numpy as np
 import pandas as pd
 from collections import namedtuple
 
-'''
-USAGE: 
-python loader.py [--p PREPROCESSOR] [--fr FRAC] [--n NOVALRSS] [--f FLOOR]
-'''
-
 class Loader(object):
     def __init__(self,
                  path='../datas/',
@@ -47,8 +42,6 @@ class Loader(object):
             test_size (float): The proportion of data used for testing.
             rssi_scaler (object): The RSSI scaler object based on the specified preprocessing method.
             coords_preprocessing (object): The coordinates scaler object based on the specified preprocessing method.
-            training_fname (str): The file path for the training data.
-            testing_fname (str): The file path for the testing data.
             data_fname (str): The file path for the original data.
             num_aps (int): The number of Access Points (APs) in the dataset.
             training_data (namedtuple): A named tuple containing training data attributes.
@@ -86,8 +79,6 @@ class Loader(object):
             print('{} - Preprocessing Method is not Supported!', self.prefix)
             sys.exit(0)
         
-        self.training_fname = path + 'trainingData.csv'
-        self.testing_fname = path + 'testingData.csv'
         self.data_fname = path + 'data.csv'
         self.num_aps = 0
         self.training_data = None
@@ -113,17 +104,21 @@ class Loader(object):
             self.training_df = self.training_df.sample(frac=self.frac)
             self.testing_df = self.testing_df.sample(frac=self.frac)
         
-        #print('Training Data Loaded: ')
-        #print(self.training_df['floor'])
+        print('Training Data Loaded: ')
+        print(self.training_df['floor'])
 
-        #print('Testing Data Loaded: ')
-        #print(self.testing_df['floor'])
+        print('Testing Data Loaded: ')
+        print(self.testing_df['floor'])
 
     def process_data(self):
         # Fill missing values rssi values with no_val_rss
         no_waps = self.no_waps
         self.training_df[no_waps] = self.training_df[no_waps].fillna(self.no_val_rss)
         self.testing_df[no_waps] = self.testing_df[no_waps].fillna(self.no_val_rss)
+
+        # Multiply all the values with -1 to match the characteristics of WiFi RSSI
+        self.training_df[no_waps] = -self.training_df[no_waps]
+        self.testing_df[no_waps] = -self.testing_df[no_waps]
 
         rss_training = np.asarray(self.training_df[no_waps])
         rss_testing = np.asarray(self.testing_df[no_waps])
@@ -192,6 +187,11 @@ class Loader(object):
             rss_scaled=rss_testing_scaled,
             labels=testing_labels
         )
+
+        print(len(self.testing_data.rss_scaled))
+
+        print(self.training_data)
+        print(self.testing_data)
         
     def save_data(self):
         pass

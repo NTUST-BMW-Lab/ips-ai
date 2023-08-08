@@ -36,7 +36,7 @@ class DNN_Regression(DNN):
         self.preprocessor = preprocessor
         self.batch_size = batch_size
         self.epochs = epochs
-        self.optimizer = optimizer,
+        self.optimizer = optimizer
         self.validation_split = validation_split
         self.dropout = dropout
         self.tx_power = tx_power
@@ -57,6 +57,11 @@ class DNN_Regression(DNN):
         self.power_test = self.testing_data.power
         self.xr_test_scaled = self.testing_data.labels.coords_scaled[:, 0]
         self.yr_test_scaled = self.testing_data.labels.coords_scaled[:, 1]
+
+        print(self.xr_train_scaled)
+        print(self.yr_train_scaled)
+        print(self.xr_test_scaled)
+        print(self.yr_test_scaled)
 
         # initialize randoms
         if self.random_state != None:
@@ -99,7 +104,7 @@ class DNN_Regression(DNN):
             model.compile(
                 optimizer=self.optimizer,
                 loss='mse',
-                metrics=['accuracy']
+                metrics=['mse']
             )
         else:
             # Input Layers
@@ -119,7 +124,7 @@ class DNN_Regression(DNN):
             self.model.compile(
                 optimizer=self.optimizer,
                 loss='mse',
-                metrics=['accuracy']
+                metrics=['mse']
             )
     
     def train(self):
