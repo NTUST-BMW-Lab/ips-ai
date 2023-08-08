@@ -16,7 +16,7 @@ from utils.save_model import save_model_dnn
 class DNN_Regression(DNN):
     def __init__(
             self,
-            training_data=None,
+            training_data=namedtuple,
             testing_data=namedtuple,
             no_waps=8,
             random_state=42,
