@@ -77,9 +77,19 @@ class DNN_Regression(DNN):
             tf.random.set_seed(self.random_state)
         
     def build_model(self):
+
+        # convert from numpy to tensor
+
+        tf.convert_to_tensor(self.rss_train_scaled)
+        tf.convert_to_tensor(self.rss_test_scaled)
+
+        tf.convert_to_tensor(self.xr_train_scaled)
+        tf.convert_to_tensor(self.yr_train_scaled)
         
         if self.tx_power:
             # Input Layers
+            tf.convert_to_tensor(self.power_train)
+
             input_rss = Input(shape=(self.no_waps,), name='input_rss')
             input_power = Input(shape=(self.no_waps,), name='input_power')
 
