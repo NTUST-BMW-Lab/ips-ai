@@ -1,8 +1,9 @@
 import os
-import sys
+import datetime
 import tensorflow as tf
 import numpy as np
 import argparse
+import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error as mse, r2_score as r2
 from keras.layers import Input, Dense, Concatenate, Dropout
 from keras.models import Model
@@ -42,6 +43,9 @@ class DNN_Regression(DNN):
         self.checkpoint_filepath = checkpoint_filepath
         self.save_model = save_model
         self.model = None
+
+        time_now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.model_name = f'dnn_{time_now}'
 
         self.rss_train_scaled = self.training_data.rss_scaled
         self.power_train = self.training_data.power
@@ -119,7 +123,7 @@ class DNN_Regression(DNN):
     
     def train(self):
         checkpoint_callback = ModelCheckpoint(
-            filepath=self.checkpoint_filepath,
+            filepath=os.path.join(self.checkpoint_filepath, self.model_name),
             save_weights_only=False,
             monitor='val_loss',
             mode='min',
@@ -183,6 +187,34 @@ class DNN_Regression(DNN):
         print('R2 Score for X Coordinates: ', xr_r2)
         print('R2 Score for Y Coordinates: ', yr_r2)
         print('-=-=-=-=-=-=-=-=- Metrics Evaluation -=-=-=-=-=-=-=-=-')
+
+        if self.save_model:
+            sample = np.arange(len(xr_test))
+            plt.figure(figsize=(12,6))
+            plt.subplot(1, 2, 1)
+            plt.plot(sample, xr_test, color='r', label='Actual')
+            plt.plot(sample, xr_pred, color='b', label='Predicted')
+            plt.xlabel('Sample')
+            plt.ylabel('X Position (Relative)')
+            plt.title('Actual vs Predicted of X Relative Coordinate')
+            plt.legend()
+
+            plt.subplot(1, 2, 2)
+            plt.plot(sample, yr_test, color='r', label='Actual')
+            plt.plot(sample, yr_pred, color='b', label='Predicted')
+            plt.xlabel('Sample')
+            plt.ylabel('Y Position (Relative)')
+            plt.title('Actual vs Predicted of Y Relative Coordinate')
+            plt.legend()
+
+            plt.tight_layout()
+
+            xr_fname = os.path.join('../evaluation')
+            plt.savefig('actual_predicted_xr.png', format='png')
+            plt.savefig('actual_predicted_yr.png', format='png')
+
+            plt.close()
+
 
 
 
