@@ -25,7 +25,7 @@ def save(model_name, model, mse_val, r2_val, predicted_coords, folder_dest='../e
                
         print(f'Evaluations and Model has been saved to ~/evaluation/{model_filename}')
 
-def save_model_dnn(model_name, xr_mse, yr_mse, xr_r2, yr_r2, xr_test, yr_test, xr_pred, yr_pred):
+def save_model_dnn(model_name, model, xr_mse, yr_mse, xr_r2, yr_r2, xr_test, yr_test, xr_pred, yr_pred):
     time_now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     folder_path = os.path.join('../evaluation/', f"{model_name}_{time_now}")
 
@@ -70,3 +70,7 @@ def save_model_dnn(model_name, xr_mse, yr_mse, xr_r2, yr_r2, xr_test, yr_test, x
 
     plt.savefig(os.path.join(folder_path, f'/actual_predicted_xr.png'), format='png')
     plt.savefig(os.path.join(folder_path, f'/actual_predicted_yr.png'), format='png')
+
+    plt.close()
+
+    print(f'Evaluations and Model has been saved to {folder_path}.')
