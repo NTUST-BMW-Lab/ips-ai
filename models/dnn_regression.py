@@ -10,29 +10,31 @@ from keras.models import Model
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 from collections import namedtuple
-from dnn import DNN
+from .regression_model import RegressionModel
 from utils.save_model import save_model_dnn
 
-class DNN_Regression(DNN):
+class DNN_Regression(RegressionModel):
     def __init__(
             self,
             training_data=namedtuple,
             testing_data=namedtuple,
-            random_state=None,
+            no_waps=8,
+            random_state=42,
             preprocessor='standard_scaler',
             batch_size=8,
             epochs=10,
             optimizer=None,
             validation_split=None,
             dropout=0.2,
-            tx_power=False,
+            tx_power=True,
             patience=10,
-            checkpoint_filepath='../checkpoint/',
+            checkpoint_filepath='./checkpoint/',
             save_model=True
         ):
         self.random_state = random_state
         self.training_data = training_data,
         self.testing_data = testing_data,
+        self.no_waps = no_waps
         self.preprocessor = preprocessor
         self.batch_size = batch_size
         self.epochs = epochs
@@ -45,37 +47,49 @@ class DNN_Regression(DNN):
         self.save_model = save_model
         self.model = None
 
+        print(self.tx_power)
+        print(self.dropout)
+        print(self.epochs)
+
+        self.training_data = training_data
+        self.testing_data = testing_data
+
         time_now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         self.model_name = f'dnn_{time_now}'
 
         self.rss_train_scaled = self.training_data.rss_scaled
         self.power_train = self.training_data.power
-        self.xr_train_scaled = self.testing_data.labels.coords_scaled[:, 0]
-        self.yr_train_scaled = self.testing_data.labels.coords_scaled[:, 1]
+
+        self.xr_train_scaled = self.training_data.labels.coords_scaled[:, 0]
+        self.yr_train_scaled = self.training_data.labels.coords_scaled[:, 1]
 
         self.rss_test_scaled = self.testing_data.rss_scaled
         self.power_test = self.testing_data.power
         self.xr_test_scaled = self.testing_data.labels.coords_scaled[:, 0]
         self.yr_test_scaled = self.testing_data.labels.coords_scaled[:, 1]
 
-        print(self.xr_train_scaled)
-        print(self.yr_train_scaled)
-        print(self.xr_test_scaled)
-        print(self.yr_test_scaled)
-
         # initialize randoms
         if self.random_state != None:
-            np.random(self.random_state)
+            np.random.seed(self.random_state)
             tf.random.set_seed(self.random_state)
         
     def build_model(self):
-        num_anchor = len(self.rss_train_scaled)
-        print(num_anchor)
+        pass
+    
+    def train(self):
+        # convert from numpy to tensor
+        tf.convert_to_tensor(self.rss_train_scaled)
+        tf.convert_to_tensor(self.rss_test_scaled)
+
+        tf.convert_to_tensor(self.xr_train_scaled)
+        tf.convert_to_tensor(self.yr_train_scaled)
         
         if self.tx_power:
             # Input Layers
-            input_rss = Input(shape=(num_anchor,), name='input_rss')
-            input_power = Input(shape=(num_anchor,), name='input_power')
+            tf.convert_to_tensor(self.power_train)
+
+            input_rss = Input(shape=(self.no_waps,), name='input_rss')
+            input_power = Input(shape=(1,), name='input_power')
 
             # RSS Feature Extraction 
             hidden_rss = Dense(64, activation='relu')(input_rss)
@@ -99,16 +113,18 @@ class DNN_Regression(DNN):
             output_xr = Dense(1, name='output_xr')(hidden_merged)
             output_yr = Dense(1, name='output_yr')(hidden_merged)
 
-            model = Model(inputs=[input_rss, input_power], outputs=[output_xr, output_yr])
+            self.model = Model(inputs=[input_rss, input_power], outputs=[output_xr, output_yr])
 
-            model.compile(
+            self.model.compile(
                 optimizer=self.optimizer,
                 loss='mse',
                 metrics=['mse']
             )
+
+            print('Successfully Build the Model of DNN')
         else:
             # Input Layers
-            input_rss = Input(shape=(num_anchor,), name='input_rss')
+            input_rss = Input(shape=(self.no_waps,), name='input_rss')
 
             # RSS Feature Extraction 
             hidden_rss = Dense(64, activation='relu')(input_rss)
@@ -126,8 +142,10 @@ class DNN_Regression(DNN):
                 loss='mse',
                 metrics=['mse']
             )
-    
-    def train(self):
+            print('Successfully Build the Model of DNN')
+
+            print('Now attempting to Train the Model')
+
         checkpoint_callback = ModelCheckpoint(
             filepath=os.path.join(self.checkpoint_filepath, self.model_name),
             save_weights_only=False,

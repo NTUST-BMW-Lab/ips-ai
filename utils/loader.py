@@ -10,13 +10,15 @@ from collections import namedtuple
 
 class Loader(object):
     def __init__(self,
-                 path='../datas/',
+                 data_path='../datas/data.csv',
+                 cleaned=False,
                  frac=0.1,
                  preprocessor='standard_scaler',
                  prefix='IPS-LOADER',
                  no_val_rss=100,
                  floor=1,
-                 test_size=0.2
+                 test_size=0.2,
+                 power=True
                  ):
         """
         A class for loading and preprocessing data for Indoor Positioning Systems (IPS).
@@ -55,13 +57,16 @@ class Loader(object):
             process_data(): Processes the loaded data by filling missing values and scaling RSSI and coordinates data.
             save_data(): Placeholder method for saving data (to be implemented if needed).
         """
-        self.path = path
+        self.data_path = data_path
         self.frac = frac
         self.prepocessor = preprocessor
+        self.cleaned = cleaned
         self.prefix = prefix
         self.no_val_rss = no_val_rss
         self.floor = floor
         self.test_size = test_size
+        self.power = power
+        self.waps = 0
 
         if preprocessor == 'standard_scaler':
             from sklearn.preprocessing import StandardScaler
@@ -79,8 +84,6 @@ class Loader(object):
             print('{} - Preprocessing Method is not Supported!', self.prefix)
             sys.exit(0)
         
-        self.data_fname = path + 'data.csv'
-        self.num_aps = 0
         self.training_data = None
         self.training_df = None
         self.testing_data = None
@@ -89,7 +92,7 @@ class Loader(object):
         self.process_data()
 
     def load_data(self):
-        data = pd.read_csv(self.data_fname, header=0)
+        data = pd.read_csv(self.data_path, header=0)
         data = data[data['floor'] == self.floor]
 
         from sklearn.model_selection import train_test_split as tts
@@ -97,31 +100,25 @@ class Loader(object):
         self.training_df = pd.DataFrame(train_data)
         self.testing_df = pd.DataFrame(test_data)
         
-        self.no_waps = [cols for cols in self.training_df.columns if 'AP' in cols]
-        self.waps_size = len(self.no_waps)
+        self.waps = [cols for cols in self.training_df.columns if 'AP' in cols]
+        self.waps_size = len(self.waps)
 
         if self.frac < 1.0:
             self.training_df = self.training_df.sample(frac=self.frac)
             self.testing_df = self.testing_df.sample(frac=self.frac)
-        
-        print('Training Data Loaded: ')
-        print(self.training_df['floor'])
-
-        print('Testing Data Loaded: ')
-        print(self.testing_df['floor'])
 
     def process_data(self):
-        # Fill missing values rssi values with no_val_rss
-        no_waps = self.no_waps
-        self.training_df[no_waps] = self.training_df[no_waps].fillna(self.no_val_rss)
-        self.testing_df[no_waps] = self.testing_df[no_waps].fillna(self.no_val_rss)
+        if self.cleaned != True:
+            # Fill missing values rssi values with no_val_rss=
+            self.training_df[self.waps] = self.training_df[self.waps].fillna(self.no_val_rss)
+            self.testing_df[self.waps] = self.testing_df[self.waps].fillna(self.no_val_rss)
 
-        # Multiply all the values with -1 to match the characteristics of WiFi RSSI
-        self.training_df[no_waps] = -self.training_df[no_waps]
-        self.testing_df[no_waps] = -self.testing_df[no_waps]
+            # Multiply all the values with -1 to match the characteristics of WiFi RSSI
+            self.training_df[self.waps] = -self.training_df[self.waps]
+            self.testing_df[self.waps] = -self.testing_df[self.waps]
 
-        rss_training = np.asarray(self.training_df[no_waps])
-        rss_testing = np.asarray(self.testing_df[no_waps])
+        rss_training = np.asarray(self.training_df[self.waps])
+        rss_testing = np.asarray(self.testing_df[self.waps])
         
         # Scale the flattened rssi data
         if self.rssi_scaler is not None:
@@ -150,48 +147,90 @@ class Loader(object):
             training_coords_scaled = training_coords
             training_coords_scaled = testing_coords
         
-        TrainData = namedtuple('TrainData', [
-            'rss', 'rss_scaled', 'rss_scaler', 'labels'
-        ])
-        TrainLabel = namedtuple('TrainLabel', [
-            'coords', 'coords_scaled', 'coords_scaler'
-        ])
-        TestData = namedtuple('TestData', [
-            'rss', 'rss_scaled', 'labels'
-        ])
-        TestLabel = namedtuple('TestLabel', [
-            'coords', 'coords_scaled', 'coords_scaler'
-        ])
+        print(self.power)
+        # Process Power Data
+        if self.power:
+            power_data_train = self.training_df['cur_eirp']
+            power_data_test = self.testing_df['cur_eirp']
 
-        training_labels = TrainLabel(
-            coords=training_coords,
-            coords_scaled=training_coords_scaled,
-            coords_scaler=self.coords_preprocessing
-        )
+            TrainData = namedtuple('TrainData', [
+                'rss', 'rss_scaled', 'rss_scaler', 'power', 'labels'
+            ])
+            TrainLabel = namedtuple('TrainLabel', [
+                'coords', 'coords_scaled', 'coords_scaler'
+            ])
+            TestData = namedtuple('TestData', [
+                'rss', 'rss_scaled', 'power', 'labels'
+            ])
+            TestLabel = namedtuple('TestLabel', [
+                'coords', 'coords_scaled', 'coords_scaler'
+            ])
 
-        self.training_data = TrainData(
-            rss=rss_training,
-            rss_scaled=rss_training_scaled,
-            rss_scaler=self.rssi_scaler,
-            labels=training_labels
-        )
-        
-        testing_labels = TestLabel(
-            coords=testing_coords,
-            coords_scaled=testing_coords_scaled,
-            coords_scaler=self.coords_preprocessing
-        )
+            training_labels = TrainLabel(
+                coords=training_coords,
+                coords_scaled=training_coords_scaled,
+                coords_scaler=self.coords_preprocessing
+            )
 
-        self.testing_data = TestData(
-            rss=rss_testing,
-            rss_scaled=rss_testing_scaled,
-            labels=testing_labels
-        )
+            self.training_data = TrainData(
+                rss=rss_training,
+                rss_scaled=rss_training_scaled,
+                rss_scaler=self.rssi_scaler,
+                power=power_data_train,
+                labels=training_labels
+            )
+            
+            testing_labels = TestLabel(
+                coords=testing_coords,
+                coords_scaled=testing_coords_scaled,
+                coords_scaler=self.coords_preprocessing
+            )
 
-        print(len(self.testing_data.rss_scaled))
+            self.testing_data = TestData(
+                rss=rss_testing,
+                rss_scaled=rss_testing_scaled,
+                power=power_data_test,
+                labels=testing_labels
+            )
+        else:
 
-        print(self.training_data)
-        print(self.testing_data)
+            TrainData = namedtuple('TrainData', [
+                'rss', 'rss_scaled', 'rss_scaler', 'labels'
+            ])
+            TrainLabel = namedtuple('TrainLabel', [
+                'coords', 'coords_scaled', 'coords_scaler'
+            ])
+            TestData = namedtuple('TestData', [
+                'rss', 'rss_scaled', 'labels'
+            ])
+            TestLabel = namedtuple('TestLabel', [
+                'coords', 'coords_scaled', 'coords_scaler'
+            ])
+
+            training_labels = TrainLabel(
+                coords=training_coords,
+                coords_scaled=training_coords_scaled,
+                coords_scaler=self.coords_preprocessing
+            )
+
+            self.training_data = TrainData(
+                rss=rss_training,
+                rss_scaled=rss_training_scaled,
+                rss_scaler=self.rssi_scaler,
+                labels=training_labels
+            )
+            
+            testing_labels = TestLabel(
+                coords=testing_coords,
+                coords_scaled=testing_coords_scaled,
+                coords_scaler=self.coords_preprocessing
+            )
+
+            self.testing_data = TestData(
+                rss=rss_testing,
+                rss_scaled=rss_testing_scaled,
+                labels=testing_labels
+            )
         
     def save_data(self):
         pass
@@ -203,9 +242,17 @@ if __name__ == '__main__':
         '--dp',
         '--data_path',
         help='Data folder path',
-        dest='data_path',
-        default='../datas/',
+        dest='data_fname',
+        default='data.csv',
         type=str
+    )
+    parser.add_argument(
+        '--c',
+        '--cleaned',
+        help='identifier for data state (cleaned or not)',
+        dest='cleaned',
+        default=False,
+        type=bool
     )
     parser.add_argument(
         '--p',
@@ -247,19 +294,32 @@ if __name__ == '__main__':
         default=0.2,
         type=float
     )
+    parser.add_argument(
+        '--pow',
+        '--power',
+        help=' ap transmission power value enabler',
+        dest='power',
+        default=True,
+        type=bool
+    )
+
     args = parser.parse_args()
     data_path = args.data_path
+    cleaned = args.cleaned
     preprocessor = args.preprocessor
     frac = args.frac
     novalrss = args.novalrss
     floor = args.floor
     test_size = args.test_size
+    power = args.power
 
     dataset = Loader(
-        path=data_path,
+        data_path=data_path,
         preprocessor=preprocessor,
+        cleaned=cleaned,
         frac=frac,
         no_val_rss=novalrss,
         floor=floor,
-        test_size=test_size
+        test_size=test_size,
+        power=power
     )

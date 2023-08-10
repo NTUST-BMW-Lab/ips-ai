@@ -40,8 +40,8 @@ class RandomForest(RegressionModel):
     def train(self, x_train_scaled, train_labels):
         # Define the hyperparameters search space
         param_grid = {
-            'n_estimators': [50, 100, 150],
-            'max_depth': [None, 10, 20, 30]
+            'n_estimators': [50, 100, 150, 200, 250, 500, 1000, 1500, 2500, 5000],
+            'max_depth': [None, 10, 20, 30, 40, 50, 100]
         }
         rf_regressor = RandomForestRegressor(random_state=self.random_state)
 
