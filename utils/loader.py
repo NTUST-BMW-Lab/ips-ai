@@ -10,7 +10,7 @@ from collections import namedtuple
 
 class Loader(object):
     def __init__(self,
-                 data_fname='data',
+                 data_path='../datas/data.csv',
                  cleaned=False,
                  frac=0.1,
                  preprocessor='standard_scaler',
@@ -57,7 +57,7 @@ class Loader(object):
             process_data(): Processes the loaded data by filling missing values and scaling RSSI and coordinates data.
             save_data(): Placeholder method for saving data (to be implemented if needed).
         """
-        self.data_fname = '../datas/' + data_fname
+        self.data_path = data_path
         self.frac = frac
         self.prepocessor = preprocessor
         self.cleaned = cleaned
@@ -66,7 +66,7 @@ class Loader(object):
         self.floor = floor
         self.test_size = test_size
         self.power = power
-        self.no_waps = 0
+        self.waps = 0
 
         if preprocessor == 'standard_scaler':
             from sklearn.preprocessing import StandardScaler
@@ -92,7 +92,7 @@ class Loader(object):
         self.process_data()
 
     def load_data(self):
-        data = pd.read_csv(self.data_fname, header=0)
+        data = pd.read_csv(self.data_path, header=0)
         data = data[data['floor'] == self.floor]
 
         from sklearn.model_selection import train_test_split as tts
@@ -100,8 +100,8 @@ class Loader(object):
         self.training_df = pd.DataFrame(train_data)
         self.testing_df = pd.DataFrame(test_data)
         
-        self.no_waps = [cols for cols in self.training_df.columns if 'AP' in cols]
-        self.waps_size = len(self.no_waps)
+        self.waps = [cols for cols in self.training_df.columns if 'AP' in cols]
+        self.waps_size = len(self.waps)
 
         if self.frac < 1.0:
             self.training_df = self.training_df.sample(frac=self.frac)
@@ -109,17 +109,16 @@ class Loader(object):
 
     def process_data(self):
         if self.cleaned != True:
-            # Fill missing values rssi values with no_val_rss
-            no_waps = self.no_waps
-            self.training_df[no_waps] = self.training_df[no_waps].fillna(self.no_val_rss)
-            self.testing_df[no_waps] = self.testing_df[no_waps].fillna(self.no_val_rss)
+            # Fill missing values rssi values with no_val_rss=
+            self.training_df[self.waps] = self.training_df[self.waps].fillna(self.no_val_rss)
+            self.testing_df[self.waps] = self.testing_df[self.waps].fillna(self.no_val_rss)
 
             # Multiply all the values with -1 to match the characteristics of WiFi RSSI
-            self.training_df[no_waps] = -self.training_df[no_waps]
-            self.testing_df[no_waps] = -self.testing_df[no_waps]
+            self.training_df[self.waps] = -self.training_df[self.waps]
+            self.testing_df[self.waps] = -self.testing_df[self.waps]
 
-        rss_training = np.asarray(self.training_df[self.no_waps])
-        rss_testing = np.asarray(self.testing_df[self.no_waps])
+        rss_training = np.asarray(self.training_df[self.waps])
+        rss_testing = np.asarray(self.testing_df[self.waps])
         
         # Scale the flattened rssi data
         if self.rssi_scaler is not None:
@@ -243,8 +242,8 @@ if __name__ == '__main__':
         '--dp',
         '--data_path',
         help='Data folder path',
-        dest='data_path',
-        default='../datas/',
+        dest='data_fname',
+        default='data.csv',
         type=str
     )
     parser.add_argument(
@@ -295,6 +294,15 @@ if __name__ == '__main__':
         default=0.2,
         type=float
     )
+    parser.add_argument(
+        '--pow',
+        '--power',
+        help=' ap transmission power value enabler',
+        dest='power',
+        default=True,
+        type=bool
+    )
+
     args = parser.parse_args()
     data_path = args.data_path
     cleaned = args.cleaned
@@ -306,7 +314,7 @@ if __name__ == '__main__':
     power = args.power
 
     dataset = Loader(
-        path=data_path,
+        data_path=data_path,
         preprocessor=preprocessor,
         cleaned=cleaned,
         frac=frac,
